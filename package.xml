@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>wm_pose_classification</name>
+  <version>0.0.0</version>
+  <description>
+    This package provides a pose detected classifiedse_detection package
+  </description>
+ 
+  <maintainer email="aj91550@etsmtl.net">veronica</maintainer>
+  <maintainer email="philippe117@live.fr">philippe la madeleine</maintainer>
+
+  <license>MIT</license>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>sara_msgs</build_depend>
+
+  <build_export_depend>sara_msgs</build_export_depend>
+  
+  <exec_depend>sara_msgs</exec_depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+  </export>
+</package>
