@@ -33,21 +33,36 @@
 #
 # Revision $Id$
 
+## Simple talker demo that published std_msgs/Strings messages
+## to the 'chatter' topic
+
 import rospy
-from std_msgs.msg import String
+from sara_msgs.msg import Pose
+
+def callback(data):
+    rospy.loginfo(rospy.get_caller_id() + 'I heard %s', data)
+
+    #Ici code pour classification des poses (la node)
+
+
+    pub.publish(data)
+
 
 def pose_classification():
-    pub = rospy.Publisher('/pose_detection/classified', String, queue_size=10)
+    #ecoute au topic de la pose classifiee
     rospy.init_node('pose_classification', anonymous=True)
-    rate = rospy.Rate(10) # 10hz
-    while not rospy.is_shutdown():
-        hello_str = "hello world %s" % rospy.get_time()
-        rospy.loginfo(hello_str)
-        pub.publish(hello_str)
-        rate.sleep()
+
+    rospy.Subscriber('/pose_detection/poses', Pose, callback)
+    #souscrit a un topic pour ecouter la pose detectee
+
+
+    rospy.spin()
+    #Pour continuer la boucle sans en sortir
 
 if __name__ == '__main__':
     try:
+
+        pub = rospy.Publisher('/pose_detection/classified', Pose, queue_size=10)
         pose_classification()
     except rospy.ROSInterruptException:
         pass
