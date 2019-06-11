@@ -36,14 +36,124 @@
 ## Simple talker demo that published std_msgs/Strings messages
 ## to the 'chatter' topic
 
+
+# Nombre de points : 17 [0-16]
+            # 0 : nez
+            # 1 : oeil gauche
+            # 2 : oeil droit
+            # 3 : oreille gauche
+            # 4 : oreille droite
+            # 5 : epaule gauche
+            # 6 : epaule droite
+            # 7 : coude gauche
+            # 8 : coude droit
+            # 9 : main gauche
+            # 10 : main droite
+            # 11 : hanche gauche
+            # 12 : hanche droite
+            # 13 : genoux gauche
+            # 14 : genoux droit
+            # 15 : pied gauche
+            # 16 : pied droit
+
+
 import rospy
 from sara_msgs.msg import Pose
+import math
+
+def getAngleBetweenThreePoints(a, b, c):
+    if a == None or b == None or c == None:
+        return 999
+    else:
+        u = [c.x - b.x, c.y - b.y, c.y - b.y]
+        v = [a.x - a.x, a.y - a.y, a.y - a.y]
+        scal = u[0]*v[0] + u[1]*v[1] + u[2]*v[2]
+        magnitude_u = math.sqrt(u[0]*u[0] + u[1]*u[1] + u[2]*u[2])
+        magnitude_v = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
+        return math.acos( scal / ( magnitude_u * magnitude_v ) )
 
 def callback(data):
     rospy.loginfo(rospy.get_caller_id() + 'I heard %s', data)
 
-    #Ici code pour classification des poses (la node)
+    #data.poses.parts[x].id/position
 
+    #fill the dictionnary
+    points = {}
+    for point in data.poses.parts:
+        points[str(point.id)] = point.position
+
+    data.poses.right_arm_up = False
+    data.poses.right_arm_down = False
+    data.poses.right_arm_point = False
+    data.poses.left_arm_up = False
+    data.poses.left_arm_down = False
+    data.poses.left_arm_point = False
+
+    ## RIGHT ARM UP
+    if points.has_key('10'):  # main droite
+        if points.has_key('1'):  # oeil gauche
+            if points.get('10').z > points.get('1').z:
+                data.poses.right_arm_up = True
+        if points.has_key('2'):  # oeil droit
+            if points.get('10').z > points.get('2').z:
+                data.poses.right_arm_up = True
+        if points.has_key('0'):  # nez
+            if points.get('10').z > points.get('0').z:
+                data.poses.right_arm_up = True
+        if points.has_key('3'):  # oreille gauche
+            if points.get('10').z > points.get('3').z:
+                data.poses.right_arm_up = True
+        if points.has_key('4'):  # oreille droite
+            if points.get('10').z > points.get('4').z:
+                data.poses.right_arm_up = True
+
+    ## LEFT ARM UP
+    if points.has_key('9'):  # main gauche
+        if points.has_key('1'):  # oeil gauche
+            if points.get('9').z > points.get('1').z:
+                data.poses.left_arm_up = True
+        if points.has_key('2'):  # oeil droit
+            if points.get('9').z > points.get('2').z:
+                data.poses.left_arm_up = True
+        if points.has_key('0'):  # nez
+            if points.get('9').z > points.get('0').z:
+                data.poses.left_arm_up = True
+        if points.has_key('3'):  # oreille gauche
+            if points.get('9').z > points.get('3').z:
+                data.poses.left_arm_up = True
+        if points.has_key('4'):  # oreille droite
+            if points.get('9').z > points.get('4').z:
+                data.poses.left_arm_up = True
+
+    ## LEFT ARM POINT
+    data.poses.left_arm_point = False
+    pointLeft = False
+    if points.has_key('5') and points.has_key('7') and points.has_key('9'):  # epaule coude et main gauche
+        if getAngleBetweenThreePoints(points.get('5').position, points.get('7').position, points.get('9').position) > 2.0944:  # 120 degres
+            data.poses.left_arm_point = True
+            pointLeft = True
+
+    ## RIGHT ARM POINT
+    data.poses.right_arm_point = False
+    pointRight = False
+    if points.has_key('6') and points.has_key('8') and points.has_key('10'):  # epaule coude et main droite
+        if getAngleBetweenThreePoints(points.get('6').position, points.get('8').position, points.get('10').position) > 2.0944:  # 120 degres
+            data.poses.right_arm_point = True
+            pointRight = True
+
+    ## LEFT ARM DOWN
+    data.poses.left_arm_down = False
+    if points.has_key('5') and points.has_key('7') and points.has_key('11'):  # hanche epaule et coude gauche
+        if getAngleBetweenThreePoints(points.get('11').position, points.get('5').position, points.get('7').position) < 0.5:  # 28 degres
+            if pointLeft:
+                data.poses.left_arm_down = True
+
+    ## RIGHT ARM DOWN
+    data.poses.right_arm_down = False
+    if points.has_key('6') and points.has_key('8') and points.has_key('12'):  # hanche epaule et coude droit
+        if getAngleBetweenThreePoints(points.get('12').position, points.get('6').position, points.get('8').position) < 0.5:  # 28 degres
+            if pointRight:
+                data.poses.right_arm_down = True
 
     pub.publish(data)
 
