@@ -8,10 +8,12 @@ import rospy
 #human_pose = open('HumanPoses',mode='w')
 #human_writer=csv.writer(human_pose,delimiter=',')
 label=[0,0]
+concat = np.zeros([17, 5, 0])
 
 def callbackPose(msg):
+
     global label
-    concat = np.zeros([17, 5,0])
+    global concat
     for pose in msg.poses:
         l = np.zeros([17, 5,1])
         for part in pose.parts:
@@ -22,16 +24,12 @@ def callbackPose(msg):
             l[part.id, 4] = int(label[1])
         concat = np.concatenate((concat,l),axis=2)
         #print(concat)
-        #print('hello')
     np.save('HumanPoses',concat)
-
 
 def callbackLabel(msg):
     global label
     label=msg.data
     print(label)
-
-#ecrire pose dans un csv, topic1 un list de poses
 
 if __name__=='__main__':
     rospy.init_node('converter', anonymous=True)
